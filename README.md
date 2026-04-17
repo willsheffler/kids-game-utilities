@@ -45,8 +45,18 @@ cd /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities
 python -m backend.smoke --root .
 ```
 
+Combined backend + frontend smoke:
+
+```bash
+cd /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities
+bash smoke.sh
+```
+
 Current HTTP routes:
 
+- `GET /health`
+- `GET /sessions`
+- `GET /agent-status/:session`
 - `POST /chat`
 - `GET /history/:session`
 - `GET /poll/:session`
@@ -68,3 +78,4 @@ Compatibility aliases for the current frontend scaffold:
 Note:
 
 - the backend now includes a narrow harness/chatlog/spool bridge for the existing shared chat panel
+- runtime/session helper routes are also available for status dots and backend-target discovery

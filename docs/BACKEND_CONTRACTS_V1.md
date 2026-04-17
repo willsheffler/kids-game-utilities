@@ -106,6 +106,8 @@ Frontend-facing artifact payload:
       "label": "boss wave clear",
       "description": null,
       "path": "session-logs/assets/2026-04-17/boss-wave.png",
+      "url": "session-logs/assets/2026-04-17/boss-wave.png",
+      "filename": "boss-wave.png",
       "mimeType": "image/png",
       "createdAt": "2026-04-17T08:01:02+00:00",
       "updatedAt": "2026-04-17T08:01:05+00:00",
@@ -214,6 +216,9 @@ Current project list behavior:
 
 Canonical routes:
 
+- `GET /health`
+- `GET /sessions`
+- `GET /agent-status/:session`
 - `POST /chat`
 - `GET /history/:session`
 - `GET /poll/:session`
@@ -272,5 +277,39 @@ Poll response shape:
     { "role": "agent", "text": "follow-up", "sender": "madeira" }
   ],
   "pending_sessions": ["madeira"]
+}
+```
+
+Health response shape:
+
+```json
+{
+  "status": "ok",
+  "default_session": "madeira",
+  "user": "sheffler",
+  "host": "cake"
+}
+```
+
+Sessions response shape:
+
+```json
+{
+  "sessions": ["bella", "madeira", "pensieve-loom"],
+  "default": "madeira"
+}
+```
+
+Agent-status response shape:
+
+```json
+{
+  "session": "madeira",
+  "status": "busy",
+  "busy_status": "running",
+  "pane_command": "codex",
+  "last_line": "working...",
+  "runtime_family": "codex_cli",
+  "logical_actor": "madeira"
 }
 ```
