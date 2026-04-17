@@ -27,6 +27,18 @@ Created:
 - StatusDot.svelte — busy/idle/error indicator
 
 Build: clean, 47KB JS, 5.7KB CSS
+
+### 2026-04-17 02:15 — Phase 2+3 frontend wiring
+- ScreenshotCapture wired to POST /api/artifacts (creates artifact via backend)
+- ScreenshotSuggestion toast for agent-suggested screenshots
+- ReportViewer wired to GET /api/reports, auto-refresh every 5s
+- ProjectSelector wired to GET /api/projects, POST /api/prefs/active-project
+- App.svelte bootstrap from GET /api/bootstrap
+- ArtifactTray loads from GET /api/artifacts
+- TriggerControl aligned to backend canonical values (auto|mention|manual)
+- Seam note from Rivet: aligned on trigger mode values, bootstrap payload shape confirmed
+
+Build: 54KB JS, 8.5KB CSS, clean
 Tests: none yet (need contract tests from Rivet before integration tests)
 Next: wire ChatPanel to real backend, start screenshot capture UI
 

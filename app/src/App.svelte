@@ -26,7 +26,7 @@
   // Bootstrap from backend prefs
   async function bootstrap() {
     try {
-      const resp = await fetch(`${BACKEND}/bootstrap`);
+      const resp = await fetch(`${BACKEND}/api/bootstrap?userId=${encodeURIComponent(user)}`);
       if (resp.ok) {
         const data = await resp.json();
         const prefs = data.result?.prefs || data.prefs || {};
@@ -34,11 +34,26 @@
         if (prefs.triggerMode) triggerMode = prefs.triggerMode;
       }
     } catch (e) { /* backend may not be ready yet */ }
+    await loadArtifacts();
+  }
+
+  async function loadArtifacts() {
+    try {
+      const q = activeProject ? `?projectSlug=${encodeURIComponent(activeProject)}` : '';
+      const resp = await fetch(`${BACKEND}/api/artifacts${q}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        artifacts = (data.result?.artifacts || []).map(a => ({
+          id: a.id, label: a.label, path: a.path, filename: a.path?.split('/').pop() || '',
+          status: a.status, kind: a.kind,
+        }));
+      }
+    } catch (e) { /* backend may not be ready */ }
   }
 
   function handleScreenshotCaptured(e) {
-    // Add to local artifacts list
-    artifacts = [...artifacts, { label: e.detail.label, path: e.detail.path, filename: e.detail.path?.split('/').pop() || '' }];
+    // Reload artifacts from backend after capture
+    loadArtifacts();
   }
 
   function handleSuggestionAccept(e) {

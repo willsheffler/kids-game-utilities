@@ -1,14 +1,39 @@
 <script>
+  import { onMount } from 'svelte';
+
   export let activeProject = '';
   export let backendUrl = '';
 
-  // Placeholder — will load from backend prefs later
-  let projects = ['(default)'];
+  let projects = [];
+
+  async function loadProjects() {
+    try {
+      const resp = await fetch(`${backendUrl}/api/projects`);
+      if (resp.ok) {
+        const data = await resp.json();
+        projects = data.result?.projects || [];
+      }
+    } catch (e) { /* backend may not be ready */ }
+  }
+
+  async function setProject(slug) {
+    activeProject = slug;
+    try {
+      await fetch(`${backendUrl}/api/prefs/active-project`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'will', projectSlug: slug }),
+      });
+    } catch (e) { /* ignore */ }
+  }
+
+  onMount(loadProjects);
 </script>
 
-<select class="project-selector" bind:value={activeProject}>
+<select class="project-selector" value={activeProject} on:change={(e) => setProject(e.target.value)}>
+  <option value="">(all projects)</option>
   {#each projects as p}
-    <option value={p}>{p}</option>
+    <option value={p.slug}>{p.label || p.slug}</option>
   {/each}
 </select>
 

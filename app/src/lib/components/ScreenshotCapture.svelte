@@ -65,22 +65,24 @@
         reader.readAsDataURL(previewBlob);
       });
 
-      // Upload via chat-with-image
-      const resp = await fetch(`${backendUrl}/chat-with-image`, {
+      // Create artifact via backend API
+      const resp = await fetch(`${backendUrl}/api/artifacts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: label,
-          image_b64: b64,
-          image_filename: `screenshot_${Date.now()}.png`,
+          kind: 'screenshot',
+          label: label,
+          imageBase64: b64,
+          fileName: `screenshot_${Date.now()}.png`,
         }),
       });
       const data = await resp.json();
+      const artifact = data.result?.artifact || {};
 
       dispatch('captured', {
         label,
-        path: data.image_path || '',
-        reply: data.reply || '',
+        id: artifact.id || '',
+        path: artifact.path || '',
       });
 
       dismiss();
