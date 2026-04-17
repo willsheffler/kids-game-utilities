@@ -6,17 +6,19 @@ export default defineConfig({
   plugins: [svelte()],
   server: {
     proxy: {
-      // Proxy backend API requests to the kids-game-utilities backend
+      // All backend requests go to the kids-game-utilities backend
+      // It bridges chat/history/poll to the Pensieve harness internally
       '/api': {
         target: 'http://localhost:8790',
         changeOrigin: true,
       },
-      // Proxy chat/harness requests to the Pensieve frontend backend
-      '/chat': 'http://localhost:8767',
-      '/poll': 'http://localhost:8767',
-      '/history': 'http://localhost:8767',
-      '/transcribe': 'http://localhost:8767',
-      '/upload-image': 'http://localhost:8767',
+      '/chat': 'http://localhost:8790',
+      '/poll': 'http://localhost:8790',
+      '/history': 'http://localhost:8790',
+      '/uploads': 'http://localhost:8790',
+      '/bootstrap': 'http://localhost:8790',
+      '/artifacts': 'http://localhost:8790',
+      '/transcribe': 'http://localhost:8767', // Whisper stays direct for now
     },
   },
 })
