@@ -4,10 +4,10 @@ Shared tooling for kids' AI-assisted web game development and adjacent dogfood a
 
 Current status:
 
-- repo scaffolded
-- backend persistence/contracts/http scaffold added
-- frontend shell scaffold exists
-- implementation is in progress
+- backend persistence/contracts/http surface implemented
+- frontend shell wired to the current backend surface
+- smoke checks are in place and currently green
+- ready for dogfood on the current v1 shell cut
 
 Key docs:
 

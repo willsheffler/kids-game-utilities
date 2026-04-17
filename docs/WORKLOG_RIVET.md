@@ -2,7 +2,7 @@
 
 ## Current
 
-- task: Extending the HTTP layer for frontend integration ergonomics: route compatibility aliases plus real screenshot upload/static file serving.
+- task: Backend lane complete for the current v1 shell cut. Persistence, HTTP routes, upload/static serving, chat/history/poll bridge, runtime/session helpers, and report-linkage behavior are implemented and verified.
 - assumption changes:
   - Backend implementation can start as repo-local file-backed Python modules and tests without waiting for service migration or frontend integration.
   - Canonical trigger-mode values remain `auto|mention|manual` on the backend contract.
@@ -21,8 +21,8 @@
   - post-Loom wiring recheck: `bash smoke.sh` -> still OK after status/session integration
 - blocker:
 - next:
-  - Frontend can now wire against the current HTTP surface without inventing new backend shapes.
-  - Next backend slice: runtime/session helper endpoints (`/health`, `/sessions`, agent status) so the shell can discover defaults and show real status instead of placeholders.
+  - No backend blocker remains on the current scope.
+  - Next meaningful work is a new feature slice or broader dogfood feedback, not more foundation work.
 
 ## Notes
 
@@ -47,7 +47,9 @@
 - Loom also wired StatusDot to `/agent-status/:session` and session auto-discovery from `/sessions`; current frontend build still passes
 - Backend/backend-pointer commits were pushed:
   - kids-game-utilities: `8c157e4` (`Add kids-game backend API and smoke coverage`)
+  - kids-game-utilities: `b79e452` (`Tolerate unscoped reports and derive artifact links`)
   - parent workspace pointer: `ba92b53` (`Update kids-game-utilities backend API submodule`)
+  - parent workspace pointer: `354bf9f` (`Update kids-game-utilities report flow submodule`)
 - Added `backend/smoke.py` for repeatable backend route smoke verification
 - Added non-deferrable contract tests in:
   - `tests/test_store.py`
