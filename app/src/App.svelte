@@ -1,0 +1,169 @@
+<script>
+  import DevPanel from './lib/components/DevPanel.svelte';
+  import ChatPanel from './lib/components/ChatPanel.svelte';
+  import ArtifactTray from './lib/components/ArtifactTray.svelte';
+  import TriggerControl from './lib/components/TriggerControl.svelte';
+  import ProjectSelector from './lib/components/ProjectSelector.svelte';
+  import ReportViewer from './lib/components/ReportViewer.svelte';
+  import StatusDot from './lib/components/StatusDot.svelte';
+
+  const BACKEND = import.meta.env.VITE_BACKEND_URL || window.location.origin;
+
+  let devPanelOpen = true;
+  let activeProject = '';
+  let triggerMode = 'always';
+  let agentStatus = 'idle';
+
+  const session = import.meta.env.VITE_DEFAULT_SESSION || '';
+  const user = 'Will';
+</script>
+
+<div class="app" class:panel-open={devPanelOpen}>
+  <header class="app-header">
+    <div class="header-left">
+      <ProjectSelector bind:activeProject backendUrl={BACKEND} />
+      <StatusDot status={agentStatus} />
+    </div>
+    <button class="toggle-panel" on:click={() => devPanelOpen = !devPanelOpen}>
+      {devPanelOpen ? '→' : '←'} Dev
+    </button>
+  </header>
+
+  <main class="content-area">
+    <div class="placeholder-content">
+      <p>Game / app content goes here</p>
+      <p style="color: var(--text-dim); font-size: 0.85em;">Replace this with your app component</p>
+    </div>
+  </main>
+
+  {#if devPanelOpen}
+    <DevPanel>
+      <div class="dev-panel-content">
+        <ArtifactTray backendUrl={BACKEND} project={activeProject} />
+
+        <div class="chat-section">
+          <ChatPanel
+            backendUrl={BACKEND}
+            {session}
+            {user}
+            agentLabel="agent"
+          />
+          <div class="composer-controls">
+            <TriggerControl bind:mode={triggerMode} />
+          </div>
+        </div>
+
+        <ReportViewer backendUrl={BACKEND} project={activeProject} />
+      </div>
+    </DevPanel>
+  {/if}
+</div>
+
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8e8;
+    --text-dim: #888;
+    --accent: #4a9eff;
+    --panel-width: 380px;
+  }
+
+  :global(body) {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .toggle-panel {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+  }
+  .toggle-panel:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .app.panel-open {
+    display: grid;
+    grid-template-columns: 1fr var(--panel-width);
+    grid-template-rows: auto 1fr;
+  }
+  .app.panel-open .app-header {
+    grid-column: 1 / -1;
+  }
+
+  .content-area {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+  }
+
+  .placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-dim);
+    gap: 8px;
+  }
+
+  .dev-panel-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .chat-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .composer-controls {
+    padding: 4px 8px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .app.panel-open {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr 40vh;
+    }
+  }
+</style>
