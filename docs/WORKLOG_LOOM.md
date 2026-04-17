@@ -2,14 +2,35 @@
 
 ## Current
 
-- task: Phase 4 — narrow multi-project support + polish
-- status: in progress
-- assumption changes: all proxy routes now go through Rivet's backend (8790), which bridges chat to harness
-- tests run: 15/15 contract tests pass, Rivet has 29 backend tests passing
+- task: Lattice fix batch — all 5 fixes complete, all tests passing
+- status: complete — ready for dogfood
+- tests run: 73/73 (15 contract + 15 fix-batch + 43 backend)
 - blocker: none
-- next: init vite project, create App.svelte shell, wire ChatPanel
+- next: dogfood with Will + Madeira
 
 ## Log
+
+### 2026-04-17 07:30 — Fix batch complete (Lattice review)
+All 5 fixes from the Lattice-assigned batch are done:
+
+1. **History replay side effects** — ChatPanel.addMessage accepts `{ fromHistory }` option. When true, `dispatch('suggest-screenshot')` and `dispatch('save-report')` are suppressed. History loader passes `fromHistory: true`.
+
+2. **userId consistency** — ProjectSelector accepts `userId` prop (no longer hardcoded 'will'). App.svelte passes `userId={user}` to ProjectSelector.
+
+3. **Project switch refresh** — ProjectSelector dispatches `change` event. App.svelte reloads artifacts on change. ReportViewer is now reactive to `project` prop changes via `$:` block — reloads reports when project changes while viewer is open.
+
+4. **Markdown rendering** — ReportViewer uses `{@html marked(activeReport.markdown || '')}` instead of `<pre>`. CSS updated for rendered HTML (headings, lists, images, code blocks). `marked` library installed and imported.
+
+5. **Trigger mode enforcement** — ChatPanel accepts `triggerMode` prop. New `shouldSendToAgent(text)` function gates `send()`: auto=always, mention=requires `@word`, manual=never. App.svelte passes `{triggerMode}` to ChatPanel.
+
+Tests added: `tests/frontend/test_fix_batch.py` — 15 tests covering all 5 fixes:
+- 3 history replay side-effect tests (tag parsing, stripping, fromHistory semantics)
+- 3 userId consistency tests (arbitrary userId, per-user trigger mode, per-user project)
+- 2 project switch refresh tests (artifacts filter, reports filter)
+- 3 markdown rendering tests (headings/lists, embedded images, upload path serves)
+- 4 trigger mode enforcement tests (auto/mention/manual logic, backend round-trip)
+
+Full suite: 73/73 passing. Build: clean, 98KB JS.
 
 ### 2026-04-17 01:40 — Phase 1 start
 Starting app scaffold. Creating Svelte+Vite project, App.svelte shell with DevPanel layout, placeholder components for artifact tray, report pane, project selector, trigger control.

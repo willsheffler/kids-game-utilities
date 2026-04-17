@@ -1,5 +1,6 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, afterUpdate } from 'svelte';
+  import { marked } from 'marked';
 
   export let backendUrl = '';
   export let project = '';
@@ -8,6 +9,16 @@
   let activeReport = null;
   let visible = false;
   let refreshTimer;
+  let lastProject = project;
+
+  // Reload reports when project prop changes while viewer is open
+  $: if (project !== lastProject) {
+    lastProject = project;
+    if (visible) {
+      activeReport = null;
+      loadReports();
+    }
+  }
 
   async function loadReports() {
     try {
@@ -65,7 +76,7 @@
     </div>
     <div class="report-body">
       {#if activeReport?.markdown}
-        <pre class="report-markdown">{activeReport.markdown}</pre>
+        <div class="report-markdown">{@html marked(activeReport.markdown || '')}</div>
       {:else if reports.length === 0}
         <p class="empty">No reports yet. Ask the agent to generate one.</p>
       {:else}
@@ -133,10 +144,43 @@
     flex: 1;
   }
   .report-markdown {
-    white-space: pre-wrap;
-    font-family: inherit;
     color: var(--text, #e8e8e8);
     margin: 0;
+  }
+  .report-markdown :global(h1),
+  .report-markdown :global(h2),
+  .report-markdown :global(h3) {
+    margin: 0.6em 0 0.3em;
+    font-weight: 600;
+  }
+  .report-markdown :global(h1) { font-size: 1.2em; }
+  .report-markdown :global(h2) { font-size: 1.05em; }
+  .report-markdown :global(h3) { font-size: 0.95em; }
+  .report-markdown :global(ul),
+  .report-markdown :global(ol) {
+    padding-left: 1.4em;
+    margin: 0.4em 0;
+  }
+  .report-markdown :global(p) {
+    margin: 0.4em 0;
+  }
+  .report-markdown :global(img) {
+    max-width: 100%;
+    border-radius: 4px;
+    margin: 0.4em 0;
+  }
+  .report-markdown :global(code) {
+    background: rgba(255,255,255,0.08);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  .report-markdown :global(pre) {
+    background: rgba(255,255,255,0.06);
+    padding: 8px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0.4em 0;
   }
   .empty {
     color: var(--text-dim, #888);

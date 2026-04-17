@@ -78,7 +78,7 @@
 <div class="app" class:panel-open={devPanelOpen}>
   <header class="app-header">
     <div class="header-left">
-      <ProjectSelector bind:activeProject backendUrl={BACKEND} />
+      <ProjectSelector bind:activeProject backendUrl={BACKEND} userId={user} on:change={() => { loadArtifacts(); }} />
       <StatusDot bind:status={agentStatus} backendUrl={BACKEND} {session} />
     </div>
     <button class="toggle-panel" on:click={() => devPanelOpen = !devPanelOpen}>
@@ -110,6 +110,7 @@
             {session}
             {user}
             agentLabel="agent"
+            {triggerMode}
             on:suggest-screenshot={(e) => { screenshotSuggestion = e.detail.label; showSuggestion = true; }}
             on:save-report={async (e) => {
               try {

@@ -5,6 +5,7 @@
   export let session = '';
   export let user = '';
   export let agentLabel = 'agent';
+  export let triggerMode = 'auto'; // 'auto' | 'mention' | 'manual'
 
   const dispatch = createEventDispatcher();
 
@@ -21,7 +22,7 @@
     return `${role}|${norm}`;
   }
 
-  function addMessage(role, text, sender) {
+  function addMessage(role, text, sender, { fromHistory = false } = {}) {
     const key = msgKey(role, text);
     if (seenKeys.has(key)) return;
     seenKeys.add(key);
@@ -35,18 +36,16 @@
     if (role === 'agent') {
       displayText = displayText.replace(/^\[[^\]]+\]:\s*/, '');
     }
-    // Extract agent tags before display
+    // Extract agent tags — only dispatch side effects for new messages, not history replay
     if (role === 'agent') {
-      // Screenshot suggestion: [suggest-screenshot: "label"]
       const ssMatch = displayText.match(/\[suggest-screenshot:\s*"([^"]+)"\]/);
       if (ssMatch) {
-        dispatch('suggest-screenshot', { label: ssMatch[1] });
+        if (!fromHistory) dispatch('suggest-screenshot', { label: ssMatch[1] });
         displayText = displayText.replace(ssMatch[0], '').trim();
       }
-      // Save report: [save-report]...[/save-report]
       const reportMatch = displayText.match(/\[save-report\]([\s\S]*?)\[\/save-report\]/);
       if (reportMatch) {
-        dispatch('save-report', { markdown: reportMatch[1].trim() });
+        if (!fromHistory) dispatch('save-report', { markdown: reportMatch[1].trim() });
         displayText = displayText.replace(reportMatch[0], '').trim();
         if (!displayText) displayText = '(Report saved)';
       }
@@ -69,18 +68,26 @@
       messages = [];
       seenKeys.clear();
       for (const m of (data.messages || [])) {
-        addMessage(m.role, m.text, m.sender || '');
+        addMessage(m.role, m.text, m.sender || '', { fromHistory: true });
       }
     } catch (e) { console.warn('History load failed:', e); }
+  }
+
+  function shouldSendToAgent(text) {
+    if (triggerMode === 'auto') return true;
+    if (triggerMode === 'mention') return /@\w+/.test(text);
+    return false; // 'manual' — never send automatically
   }
 
   async function send() {
     const text = inputText.trim();
     if (!text || processing) return;
-    processing = true;
     inputText = '';
     addMessage('user', text, user);
 
+    if (!shouldSendToAgent(text)) return;
+
+    processing = true;
     try {
       const resp = await fetch(`${backendUrl}/chat`, {
         method: 'POST',

@@ -1,8 +1,10 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
+  const dispatch = createEventDispatcher();
 
   export let activeProject = '';
   export let backendUrl = '';
+  export let userId = 'will';
 
   let projects = [];
 
@@ -22,9 +24,10 @@
       await fetch(`${backendUrl}/api/prefs/active-project`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 'will', projectSlug: slug }),
+        body: JSON.stringify({ userId, projectSlug: slug }),
       });
     } catch (e) { /* ignore */ }
+    dispatch('change', { project: slug });
   }
 
   onMount(loadProjects);
