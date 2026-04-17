@@ -16,6 +16,7 @@
   - `cd app && npm run build` -> OK (minor Svelte warnings only)
   - `PYTHONPATH=/home/sheffler/.openclaw/workspace:/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m backend.smoke --root /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities` -> OK
   - `bash smoke.sh` -> OK (backend smoke + frontend build)
+  - post-Loom wiring recheck: `bash smoke.sh` -> still OK after status/session integration
 - blocker:
 - next:
   - Frontend can now wire against the current HTTP surface without inventing new backend shapes.
@@ -40,6 +41,10 @@
 - Tightened artifact payloads with explicit `url` and `filename` fields after spotting a preview-path mismatch in the current frontend scaffold
 - Added repo-level `smoke.sh` so the current backend/frontend slice can be re-verified in one command
 - Loom replied and aligned trigger-mode values to canonical backend names `auto|mention|manual`
+- Loom also wired StatusDot to `/agent-status/:session` and session auto-discovery from `/sessions`; current frontend build still passes
+- Backend/backend-pointer commits were pushed:
+  - kids-game-utilities: `8c157e4` (`Add kids-game backend API and smoke coverage`)
+  - parent workspace pointer: `ba92b53` (`Update kids-game-utilities backend API submodule`)
 - Added `backend/smoke.py` for repeatable backend route smoke verification
 - Added non-deferrable contract tests in:
   - `tests/test_store.py`

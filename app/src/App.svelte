@@ -54,7 +54,8 @@
       if (resp.ok) {
         const data = await resp.json();
         artifacts = (data.result?.artifacts || []).map(a => ({
-          id: a.id, label: a.label, path: a.path, filename: a.path?.split('/').pop() || '',
+          id: a.id, label: a.label, path: a.path, url: a.url || '',
+          filename: a.path?.split('/').pop() || '',
           status: a.status, kind: a.kind,
         }));
       }
@@ -109,6 +110,16 @@
             {session}
             {user}
             agentLabel="agent"
+            on:suggest-screenshot={(e) => { screenshotSuggestion = e.detail.label; showSuggestion = true; }}
+            on:save-report={async (e) => {
+              try {
+                await fetch(`${BACKEND}/api/reports`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ markdown: e.detail.markdown, projectSlug: activeProject, title: `Session ${new Date().toISOString().slice(0,10)}` }),
+                });
+              } catch (err) { console.error('Report save failed:', err); }
+            }}
           />
           <div class="composer-controls">
             <ScreenshotCapture

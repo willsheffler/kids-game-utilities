@@ -10,7 +10,7 @@
   {:else}
     {#each artifacts as art}
       <div class="artifact-thumb">
-        <img src="{backendUrl}/uploads/{art.filename}" alt={art.label} />
+        <img src="{art.url || (backendUrl + '/' + art.path)}" alt={art.label} />
         <span class="artifact-label">{art.label}</span>
       </div>
     {/each}

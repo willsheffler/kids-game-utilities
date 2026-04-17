@@ -1,10 +1,12 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 
   export let backendUrl = '';
   export let session = '';
   export let user = '';
   export let agentLabel = 'agent';
+
+  const dispatch = createEventDispatcher();
 
   let messages = [];
   let inputText = '';
@@ -32,6 +34,22 @@
     }
     if (role === 'agent') {
       displayText = displayText.replace(/^\[[^\]]+\]:\s*/, '');
+    }
+    // Extract agent tags before display
+    if (role === 'agent') {
+      // Screenshot suggestion: [suggest-screenshot: "label"]
+      const ssMatch = displayText.match(/\[suggest-screenshot:\s*"([^"]+)"\]/);
+      if (ssMatch) {
+        dispatch('suggest-screenshot', { label: ssMatch[1] });
+        displayText = displayText.replace(ssMatch[0], '').trim();
+      }
+      // Save report: [save-report]...[/save-report]
+      const reportMatch = displayText.match(/\[save-report\]([\s\S]*?)\[\/save-report\]/);
+      if (reportMatch) {
+        dispatch('save-report', { markdown: reportMatch[1].trim() });
+        displayText = displayText.replace(reportMatch[0], '').trim();
+        if (!displayText) displayText = '(Report saved)';
+      }
     }
     messages = [...messages, { role, text: displayText, label: label || (role === 'agent' ? agentLabel : ''), raw: text }];
     scrollToBottom();
