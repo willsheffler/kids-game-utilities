@@ -12,7 +12,7 @@
   - Report persistence should tolerate loose all-project mode: if `projectSlug` is empty, backend should allow an unscoped report instead of failing.
   - Report linkage should not depend entirely on the frontend sending `artifactIds`; backend should derive artifact linkage from markdown image paths when possible.
 - tests run:
-  - `PYTHONPATH=/home/sheffler/.openclaw/workspace:/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m unittest discover -s /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities/tests -p 'test_*.py'` -> 42 tests passed
+  - `PYTHONPATH=/home/sheffler/.openclaw/workspace:/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m unittest discover -s /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities/tests -p 'test_*.py'` -> 43 tests passed
   - `PYTHONPATH=/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m backend.server --help` -> OK
   - ephemeral-port smoke: `/bootstrap`, `/artifacts` upload, and `/uploads/*` static serving all returned 200
   - `cd app && npm run build` -> OK (minor Svelte warnings only)
@@ -21,8 +21,8 @@
   - post-Loom wiring recheck: `bash smoke.sh` -> still OK after status/session integration
 - blocker:
 - next:
-  - No backend blocker remains on the current scope.
-  - Next meaningful work is a new feature slice or broader dogfood feedback, not more foundation work.
+  - Backend is intentionally held stable for Loom's current frontend fix batch.
+  - Support only if Loom finds a real seam; otherwise limit backend changes to narrow defensive tests/docs.
 
 ## Notes
 
@@ -45,6 +45,7 @@
 - Added repo-level `smoke.sh` so the current backend/frontend slice can be re-verified in one command
 - Loom replied and aligned trigger-mode values to canonical backend names `auto|mention|manual`
 - Loom also wired StatusDot to `/agent-status/:session` and session auto-discovery from `/sessions`; current frontend build still passes
+- Holding backend contracts stable during the current frontend correctness batch; added one store-level regression test to ensure repeated saves of the same markdown-linked report do not duplicate artifact linkage
 - Backend/backend-pointer commits were pushed:
   - kids-game-utilities: `8c157e4` (`Add kids-game backend API and smoke coverage`)
   - kids-game-utilities: `b79e452` (`Tolerate unscoped reports and derive artifact links`)

@@ -192,6 +192,32 @@ class KidsGameStoreTests(unittest.TestCase):
         self.assertEqual([artifact["id"]], report["artifact_ids"])
         self.assertEqual([report["id"]], store.get_artifact(artifact["id"])["linked_report_ids"])
 
+    def test_repeated_report_save_does_not_duplicate_artifact_linkage(self):
+        tmp, store = self.make_store()
+        self.addCleanup(tmp.cleanup)
+        artifact = store.create_artifact(
+            kind="screenshot",
+            path="/uploads/tower-defense/repeat.png",
+            label="repeat",
+            project_slug="tower-defense",
+            status="accepted",
+        )
+        report = store.create_or_update_report(
+            project_slug="tower-defense",
+            title="Session",
+            markdown="![repeat](/uploads/tower-defense/repeat.png)",
+            artifact_ids=[],
+        )
+        updated = store.create_or_update_report(
+            report_id=report["id"],
+            project_slug="tower-defense",
+            title="Session",
+            markdown="![repeat](/uploads/tower-defense/repeat.png)",
+            artifact_ids=[],
+        )
+        self.assertEqual([artifact["id"]], updated["artifact_ids"])
+        self.assertEqual([report["id"]], store.get_artifact(artifact["id"])["linked_report_ids"])
+
     def test_report_allows_unscoped_project_slug(self):
         tmp, store = self.make_store()
         self.addCleanup(tmp.cleanup)
