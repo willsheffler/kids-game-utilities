@@ -39,6 +39,14 @@ Build: clean, 47KB JS, 5.7KB CSS
 - Seam note from Rivet: aligned on trigger mode values, bootstrap payload shape confirmed
 
 Build: 54KB JS, 8.5KB CSS, clean
+
+### 2026-04-17 02:05 — Dev server integration verified
+- Vite dev proxy configured: /api → localhost:8790 (Rivet backend), /chat /poll /history → localhost:8767 (Pensieve)
+- Backend running on 8790, all endpoints responding (bootstrap, projects, artifacts, reports)
+- Frontend → Vite proxy → backend verified end-to-end
+- Dev server running at http://localhost:5173/
+
+Status: Phase 1-3 frontend complete. All components wired to backend contracts. Ready for integration testing with real data.
 Tests: none yet (need contract tests from Rivet before integration tests)
 Next: wire ChatPanel to real backend, start screenshot capture UI
 
