@@ -2,7 +2,7 @@
 
 ## Current
 
-- task: Backend lane complete for the current v1 shell cut. Persistence, HTTP routes, upload/static serving, chat/history/poll bridge, runtime/session helpers, and report-linkage behavior are implemented and verified.
+- task: Runtime-readiness batch complete for dogfood. The real backend process on `8790` was stale, has been replaced with the current code, and the runtime/frontend-visible route surface now validates cleanly.
 - assumption changes:
   - Backend implementation can start as repo-local file-backed Python modules and tests without waiting for service migration or frontend integration.
   - Canonical trigger-mode values remain `auto|mention|manual` on the backend contract.
@@ -20,10 +20,18 @@
   - `bash smoke.sh` -> OK (backend smoke + frontend build)
   - post-Loom wiring recheck: `bash smoke.sh` -> still OK after status/session integration
   - `uv run --with pytest pytest tests/frontend/test_fix_batch.py -v` -> 15 passed
+  - runtime-readiness live check on `127.0.0.1:8790` after replacing the stale process:
+    - `curl http://127.0.0.1:8790/health` -> `{"status":"ok","default_session":"madeira","user":"sheffler","host":"cake"}`
+    - `curl http://127.0.0.1:8790/sessions` -> current session list including `pensieve-loom`, `pensieve-rivet`, `media-madeira`
+    - `curl 'http://127.0.0.1:8790/api/bootstrap?userId=will'` -> OK
+    - `curl 'http://127.0.0.1:8790/api/projects'` -> OK
+    - `curl 'http://127.0.0.1:8790/history/pensieve-loom?limit=2'` -> OK
+    - `curl 'http://127.0.0.1:8790/poll/pensieve-loom'` -> OK
+    - `curl -X POST http://127.0.0.1:8790/chat -d '{}'` with JSON header -> `{"ok":false,"error":"missing required field: text"}` (route live; no sleeping-time agent injection)
 - blocker:
 - next:
-  - Backend is intentionally held stable for Loom's current frontend fix batch.
-  - Support only if Loom finds a real seam; otherwise limit backend changes to narrow defensive tests/docs.
+  - Current backend/runtime lane is dogfood-ready.
+  - Next backend work should be driven by real dogfood findings, not more foundation churn.
 
 ## Notes
 
@@ -48,6 +56,11 @@
 - Loom also wired StatusDot to `/agent-status/:session` and session auto-discovery from `/sessions`; current frontend build still passes
 - Holding backend contracts stable during the current frontend correctness batch; added one store-level regression test to ensure repeated saves of the same markdown-linked report do not duplicate artifact linkage
 - Independent backend-side recheck of Loom's frontend fix batch passed under `uv`/`pytest`: 15 fix-batch tests green against the live backend
+- Runtime-readiness batch:
+  - confirmed the live process on `8790` was stale because `/health` and `/sessions` returned `unknown route` while `/api/bootstrap` still worked
+  - identified the stale process as `python3 -m backend.server --port 8790 --root .` from the kids-game-utilities submodule
+  - replaced it with a detached current-code process on `8790`; current listener PID at validation time: `3103585`
+  - no backend code change was required for runtime-readiness; this was a live-process refresh plus route validation pass
 - Backend/backend-pointer commits were pushed:
   - kids-game-utilities: `8c157e4` (`Add kids-game backend API and smoke coverage`)
   - kids-game-utilities: `b79e452` (`Tolerate unscoped reports and derive artifact links`)
