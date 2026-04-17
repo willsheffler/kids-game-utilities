@@ -72,8 +72,8 @@
         body: JSON.stringify({
           kind: 'screenshot',
           label: label,
-          imageBase64: b64,
-          fileName: `screenshot_${Date.now()}.png`,
+          image_b64: b64,
+          image_filename: `screenshot_${Date.now()}.png`,
         }),
       });
       const data = await resp.json();
