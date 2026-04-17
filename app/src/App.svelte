@@ -106,7 +106,7 @@
               suggestedLabel={screenshotSuggestion}
               on:captured={handleScreenshotCaptured}
             />
-            <TriggerControl bind:mode={triggerMode} />
+            <TriggerControl bind:mode={triggerMode} backendUrl={BACKEND} userId={user} />
           </div>
         </div>
 
