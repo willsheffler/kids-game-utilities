@@ -2,11 +2,22 @@
 
 ## Current
 
-- task: Phase 1 backend scaffold completed as a standalone Python persistence slice for prefs/artifacts/reports plus contract tests. Phase 2 persistence groundwork is also in place because artifact CRUD/report linkage landed in the same slice.
-- assumption changes: Backend implementation can start as repo-local file-backed Python modules and tests without waiting for service migration or frontend integration.
-- tests run: `PYTHONPATH=/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m unittest discover -s /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities/tests -p 'test_*.py'` -> 10 tests passed
+- task: Extending the HTTP layer for frontend integration ergonomics: route compatibility aliases plus real screenshot upload/static file serving.
+- assumption changes:
+  - Backend implementation can start as repo-local file-backed Python modules and tests without waiting for service migration or frontend integration.
+  - Canonical trigger-mode values remain `auto|mention|manual` on the backend contract.
+  - No web framework is preinstalled here, so the first HTTP surface should use the Python standard library rather than adding framework/dependency work.
+  - Port `8765` is already in use locally during smoke testing, so ad hoc verification may need another port even though the default runner/docs still use `8765`.
+- tests run:
+  - `PYTHONPATH=/home/sheffler/.openclaw/workspace:/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m unittest discover -s /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities/tests -p 'test_*.py'` -> 29 tests passed
+  - `PYTHONPATH=/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m backend.server --help` -> OK
+  - ephemeral-port smoke: `/bootstrap`, `/artifacts` upload, and `/uploads/*` static serving all returned 200
+  - `cd app && npm run build` -> OK (minor Svelte warnings only)
+  - `PYTHONPATH=/home/sheffler/.openclaw/workspace:/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m backend.smoke --root /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities` -> OK
 - blocker:
-- next: If continuing, add a thin API/adapter layer on top of `backend/store.py` and extend tests for adapter payload shapes/frontend-facing contract ergonomics.
+- next:
+  - Frontend can now wire against the current HTTP surface without inventing new backend shapes.
+  - Next backend slice: runtime/session helper endpoints (`/health`, `/sessions`, agent status) so the shell can discover defaults and show real status instead of placeholders.
 
 ## Notes
 
@@ -15,4 +26,14 @@
   - global artifact manifest with soft-delete/dismissed retention
   - report persistence with explicit `artifact_ids[]` linkage
 - Added `docs/BACKEND_CONTRACTS_V1.md`
-- Added non-deferrable contract tests in `tests/test_store.py`
+- Added `backend/api.py` for stable frontend-facing payloads
+- Added `backend/http_api.py` and `backend/server.py` for a runnable stdlib HTTP surface
+- Added compatibility aliases for `/bootstrap` and `/artifacts`
+- Added JSON base64 image upload handling and `/uploads/*` static file serving
+- Added `backend/chat_bridge.py` and HTTP routes for `/chat`, `/history/:session`, and `/poll/:session`
+- Loom replied and aligned trigger-mode values to canonical backend names `auto|mention|manual`
+- Added `backend/smoke.py` for repeatable backend route smoke verification
+- Added non-deferrable contract tests in:
+  - `tests/test_store.py`
+  - `tests/test_api.py`
+  - `tests/test_http_api.py`

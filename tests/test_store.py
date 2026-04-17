@@ -158,6 +158,21 @@ class KidsGameStoreTests(unittest.TestCase):
         )
         self.assertIn(artifact["path"], report["markdown"])
 
+    def test_uploaded_artifact_writes_file_and_manifest_record(self):
+        tmp, store = self.make_store()
+        self.addCleanup(tmp.cleanup)
+        artifact = store.create_uploaded_artifact(
+            filename="boss.png",
+            content_bytes=b"pngdata",
+            label="boss wave",
+            project_slug="tower-defense",
+            mime_type="image/png",
+        )
+        self.assertTrue(artifact["path"].startswith("/uploads/tower-defense/"))
+        saved = Path(tmp.name) / ".kids-game-utilities" / artifact["path"].lstrip("/")
+        self.assertTrue(saved.exists())
+        self.assertEqual(b"pngdata", saved.read_bytes())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -69,6 +69,7 @@ What it does now:
 What it does **not** yet do:
 
 - true target-idle/stall detection before re-prompting
+- consult current target busy/mid-turn state before prompting
 - direct effectiveness scoring for each re-prompt
 
 So for now:
@@ -129,6 +130,8 @@ Useful signals:
 If this pattern works, likely improvements are:
 
 - better idle-aware babysitter behavior
+- suppress babysitter pokes when hook-derived agent status is `busy`
+- add tests for “do not poke mid-turn/busy target”
 - explicit babysitter history/status inspection helpers
 - stronger automatic logging of reprompt -> subsequent activity correlation
 - reusable prompt templates for frontend/backend paired work

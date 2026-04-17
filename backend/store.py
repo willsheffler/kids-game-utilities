@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 import uuid
+from base64 import b64decode
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -23,6 +25,8 @@ class KidsGameStore:
         self.root = Path(root)
         self.state_dir = self.root / ".kids-game-utilities"
         self.state_dir.mkdir(parents=True, exist_ok=True)
+        self.uploads_dir = self.state_dir / "uploads"
+        self.uploads_dir.mkdir(parents=True, exist_ok=True)
         self._prefs_path = self.state_dir / "prefs.json"
         self._artifact_manifest_path = self.state_dir / "artifacts.json"
         self._reports_path = self.state_dir / "reports.json"
@@ -54,6 +58,54 @@ class KidsGameStore:
 
     def _new_id(self, prefix: str) -> str:
         return f"{prefix}_{uuid.uuid4().hex[:12]}"
+
+    def _safe_filename(self, filename: str) -> str:
+        raw = Path(filename or "artifact.bin").name
+        cleaned = "".join(ch for ch in raw if ch.isalnum() or ch in {".", "_", "-"})
+        return cleaned or "artifact.bin"
+
+    def save_upload(
+        self,
+        *,
+        filename: str,
+        content_bytes: bytes,
+        project_slug: str | None,
+    ) -> str:
+        project_dir = self.uploads_dir / (project_slug or "_unscoped")
+        project_dir.mkdir(parents=True, exist_ok=True)
+        suffix = Path(filename).suffix or ".bin"
+        stem = Path(filename).stem or "artifact"
+        safe_name = f"{self._safe_filename(stem)}_{uuid.uuid4().hex[:8]}{suffix}"
+        dest = project_dir / safe_name
+        with tempfile.NamedTemporaryFile(dir=project_dir, delete=False) as tmp:
+            tmp.write(content_bytes)
+            tmp_path = Path(tmp.name)
+        tmp_path.replace(dest)
+        relative = dest.relative_to(self.state_dir)
+        return f"/{relative.as_posix()}"
+
+    def create_uploaded_artifact(
+        self,
+        *,
+        filename: str,
+        content_bytes: bytes,
+        label: str,
+        project_slug: str | None,
+        status: str = "accepted",
+        description: str | None = None,
+        mime_type: str | None = None,
+    ) -> dict[str, Any]:
+        path = self.save_upload(filename=filename, content_bytes=content_bytes, project_slug=project_slug)
+        kind = "screenshot" if (mime_type or "").startswith("image/") or path.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")) else "file"
+        return self.create_artifact(
+            kind=kind,
+            path=path,
+            label=label,
+            project_slug=project_slug,
+            status=status,
+            description=description,
+            mime_type=mime_type,
+        )
 
     # prefs
     def get_active_project(self, user_id: str) -> dict[str, Any]:
