@@ -128,7 +128,7 @@ class KidsGameAPI:
         self,
         *,
         report_id: str | None = None,
-        project_slug: str,
+        project_slug: str | None,
         title: str,
         markdown: str,
         artifact_ids: list[str],

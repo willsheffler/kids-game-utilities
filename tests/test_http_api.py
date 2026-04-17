@@ -207,6 +207,34 @@ class KidsGameHTTPAPITests(unittest.TestCase):
         self.assertEqual(200, status)
         self.assertEqual("busy", payload["status"])
 
+    def test_http_report_create_derives_artifact_ids_and_allows_empty_project(self):
+        _, created = self.request(
+            "POST",
+            "/api/artifacts",
+            {
+                "kind": "screenshot",
+                "path": "/uploads/tower-defense/report-auto.png",
+                "label": "report-auto",
+                "projectSlug": "tower-defense",
+                "status": "accepted",
+            },
+        )
+        artifact_id = created["result"]["artifact"]["id"]
+        status, saved = self.request(
+            "POST",
+            "/api/reports",
+            {
+                "projectSlug": "",
+                "title": "Session",
+                "markdown": "![auto](/uploads/tower-defense/report-auto.png)",
+                "artifactIds": [],
+            },
+        )
+        self.assertEqual(200, status)
+        report = saved["result"]["report"]
+        self.assertEqual([artifact_id], report["artifactIds"])
+        self.assertIsNone(report["projectSlug"])
+
 
 if __name__ == "__main__":
     unittest.main()

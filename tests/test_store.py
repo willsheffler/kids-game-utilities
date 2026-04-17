@@ -173,6 +173,36 @@ class KidsGameStoreTests(unittest.TestCase):
         self.assertTrue(saved.exists())
         self.assertEqual(b"pngdata", saved.read_bytes())
 
+    def test_report_derives_artifact_ids_from_markdown_paths(self):
+        tmp, store = self.make_store()
+        self.addCleanup(tmp.cleanup)
+        artifact = store.create_artifact(
+            kind="screenshot",
+            path="/uploads/tower-defense/jump.png",
+            label="jump",
+            project_slug="tower-defense",
+            status="accepted",
+        )
+        report = store.create_or_update_report(
+            project_slug="tower-defense",
+            title="Session",
+            markdown="![jump](/uploads/tower-defense/jump.png)",
+            artifact_ids=[],
+        )
+        self.assertEqual([artifact["id"]], report["artifact_ids"])
+        self.assertEqual([report["id"]], store.get_artifact(artifact["id"])["linked_report_ids"])
+
+    def test_report_allows_unscoped_project_slug(self):
+        tmp, store = self.make_store()
+        self.addCleanup(tmp.cleanup)
+        report = store.create_or_update_report(
+            project_slug=None,
+            title="Session",
+            markdown="text",
+            artifact_ids=[],
+        )
+        self.assertIsNone(report["project_slug"])
+
 
 if __name__ == "__main__":
     unittest.main()

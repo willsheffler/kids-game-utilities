@@ -170,7 +170,7 @@ class KidsGameHTTPRequestHandler(BaseHTTPRequestHandler):
         if method == "POST":
             return self.api.create_or_update_report(
                 report_id=body.get("id"),
-                project_slug=self._required(body, "projectSlug"),
+                project_slug=body.get("projectSlug") or None,
                 title=self._required(body, "title"),
                 markdown=self._required(body, "markdown"),
                 artifact_ids=list(body.get("artifactIds") or []),

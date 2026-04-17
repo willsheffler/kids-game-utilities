@@ -125,6 +125,24 @@ class KidsGameAPITests(unittest.TestCase):
         self.assertTrue(artifact["path"].startswith("/uploads/tower-defense/"))
         self.assertEqual("accepted", artifact["status"])
 
+    def test_report_payload_derives_artifact_ids_from_markdown_when_omitted(self):
+        tmp, api = self.make_api()
+        self.addCleanup(tmp.cleanup)
+        artifact = api.create_artifact(
+            kind="screenshot",
+            path="/uploads/tower-defense/report.png",
+            label="report",
+            project_slug="tower-defense",
+            status="accepted",
+        )["result"]["artifact"]
+        payload = api.create_or_update_report(
+            project_slug="tower-defense",
+            title="Session",
+            markdown="![report](/uploads/tower-defense/report.png)",
+            artifact_ids=[],
+        )
+        self.assertEqual([artifact["id"]], payload["result"]["report"]["artifactIds"])
+
 
 if __name__ == "__main__":
     unittest.main()

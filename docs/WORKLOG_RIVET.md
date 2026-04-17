@@ -9,8 +9,10 @@
   - No web framework is preinstalled here, so the first HTTP surface should use the Python standard library rather than adding framework/dependency work.
   - Port `8765` is already in use locally during smoke testing, so ad hoc verification may need another port even though the default runner/docs still use `8765`.
   - Artifact payloads now explicitly include `url` and `filename`; frontend should treat `url` as canonical rather than reconstructing upload paths from basename.
+  - Report persistence should tolerate loose all-project mode: if `projectSlug` is empty, backend should allow an unscoped report instead of failing.
+  - Report linkage should not depend entirely on the frontend sending `artifactIds`; backend should derive artifact linkage from markdown image paths when possible.
 - tests run:
-  - `PYTHONPATH=/home/sheffler/.openclaw/workspace:/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m unittest discover -s /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities/tests -p 'test_*.py'` -> 38 tests passed
+  - `PYTHONPATH=/home/sheffler/.openclaw/workspace:/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m unittest discover -s /home/sheffler/.openclaw/workspace/submodules/kids-game-utilities/tests -p 'test_*.py'` -> 42 tests passed
   - `PYTHONPATH=/home/sheffler/.openclaw/workspace/submodules/kids-game-utilities python -m backend.server --help` -> OK
   - ephemeral-port smoke: `/bootstrap`, `/artifacts` upload, and `/uploads/*` static serving all returned 200
   - `cd app && npm run build` -> OK (minor Svelte warnings only)
@@ -39,6 +41,7 @@
   - `tests/test_chat_bridge.py`
   - `tests/test_runtime_bridge.py`
 - Tightened artifact payloads with explicit `url` and `filename` fields after spotting a preview-path mismatch in the current frontend scaffold
+- Tightened report persistence so markdown image paths auto-link artifacts and empty `projectSlug` saves as an unscoped report instead of failing
 - Added repo-level `smoke.sh` so the current backend/frontend slice can be re-verified in one command
 - Loom replied and aligned trigger-mode values to canonical backend names `auto|mention|manual`
 - Loom also wired StatusDot to `/agent-status/:session` and session auto-discovery from `/sessions`; current frontend build still passes

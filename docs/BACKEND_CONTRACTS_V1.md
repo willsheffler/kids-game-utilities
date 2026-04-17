@@ -181,6 +181,8 @@ Notes:
 - `artifact_ids[]` are explicit linkage, not ordering
 - markdown defines displayed artifact order through prose and embedded image placement
 - backend must keep report linkage and artifact `linked_report_ids[]` consistent
+- if `artifactIds[]` is omitted or empty, backend derives linkage from markdown image paths when they match known artifact paths
+- `projectSlug` may be `null`/empty for loose all-project mode; reports are then unscoped
 
 ## Bootstrap / project list
 

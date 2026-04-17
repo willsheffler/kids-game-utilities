@@ -7,6 +7,7 @@ import uuid
 from base64 import b64decode
 from datetime import datetime, timezone
 from pathlib import Path
+import re
 from typing import Any
 
 
@@ -223,14 +224,15 @@ class KidsGameStore:
         self,
         *,
         report_id: str | None = None,
-        project_slug: str,
+        project_slug: str | None,
         title: str,
         markdown: str,
         artifact_ids: list[str],
     ) -> dict[str, Any]:
         reports_payload = self._read_json(self._reports_path)
         manifest = self._read_json(self._artifact_manifest_path)
-        artifact_ids = sorted(set(artifact_ids))
+        derived_artifact_ids = self._artifact_ids_from_markdown(markdown, manifest)
+        artifact_ids = sorted(set(list(artifact_ids or []) + derived_artifact_ids))
         for artifact_id in artifact_ids:
             self._find_artifact(manifest, artifact_id)
         now = _now_iso()
@@ -268,6 +270,20 @@ class KidsGameStore:
         self._write_json(self._reports_path, reports_payload)
         self._write_json(self._artifact_manifest_path, manifest)
         return dict(report)
+
+    def _artifact_ids_from_markdown(self, markdown: str, manifest: dict[str, Any]) -> list[str]:
+        if not markdown:
+            return []
+        matches = re.findall(r'!\[[^\]]*\]\(([^)]+)\)', markdown)
+        if not matches:
+            return []
+        derived_ids: list[str] = []
+        for match in matches:
+            path = match.strip()
+            for artifact in manifest["artifacts"]:
+                if artifact.get("path") == path and artifact["id"] not in derived_ids:
+                    derived_ids.append(artifact["id"])
+        return derived_ids
 
     def get_report(self, report_id: str) -> dict[str, Any]:
         reports_payload = self._read_json(self._reports_path)
