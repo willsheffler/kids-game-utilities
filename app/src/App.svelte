@@ -34,6 +34,16 @@
         if (prefs.triggerMode) triggerMode = prefs.triggerMode;
       }
     } catch (e) { /* backend may not be ready yet */ }
+    // Discover default session if not set
+    if (!session) {
+      try {
+        const sResp = await fetch(`${BACKEND}/sessions`);
+        if (sResp.ok) {
+          const sData = await sResp.json();
+          session = sData.default || (sData.sessions && sData.sessions[0]) || '';
+        }
+      } catch (e) { /* ignore */ }
+    }
     await loadArtifacts();
   }
 
@@ -68,7 +78,7 @@
   <header class="app-header">
     <div class="header-left">
       <ProjectSelector bind:activeProject backendUrl={BACKEND} />
-      <StatusDot status={agentStatus} />
+      <StatusDot bind:status={agentStatus} backendUrl={BACKEND} {session} />
     </div>
     <button class="toggle-panel" on:click={() => devPanelOpen = !devPanelOpen}>
       {devPanelOpen ? '→' : '←'} Dev

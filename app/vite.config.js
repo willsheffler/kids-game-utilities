@@ -18,6 +18,9 @@ export default defineConfig({
       '/uploads': 'http://localhost:8790',
       '/bootstrap': 'http://localhost:8790',
       '/artifacts': 'http://localhost:8790',
+      '/sessions': 'http://localhost:8790',
+      '/agent-status': 'http://localhost:8790',
+      '/health': 'http://localhost:8790',
       '/transcribe': 'http://localhost:8767', // Whisper stays direct for now
     },
   },

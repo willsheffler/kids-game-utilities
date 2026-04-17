@@ -1,5 +1,39 @@
 <script>
-  export let status = 'idle'; // 'idle' | 'busy' | 'error'
+  import { onMount, onDestroy } from 'svelte';
+
+  export let status = 'idle';
+  export let backendUrl = '';
+  export let session = '';
+  export let pollInterval = 3000;
+
+  let timer;
+
+  async function poll() {
+    if (!backendUrl || !session) return;
+    try {
+      const resp = await fetch(`${backendUrl}/agent-status/${encodeURIComponent(session)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        const bs = data.busy_status || data.status || 'unknown';
+        if (bs === 'busy' || bs === 'busy_tool_use' || bs === 'busy_generating') {
+          status = 'busy';
+        } else if (data.status === 'unknown' || data.dead) {
+          status = 'error';
+        } else {
+          status = 'idle';
+        }
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  onMount(() => {
+    poll();
+    timer = setInterval(poll, pollInterval);
+  });
+
+  onDestroy(() => {
+    if (timer) clearInterval(timer);
+  });
 </script>
 
 <span class="status-dot {status}" title="Agent: {status}"></span>
