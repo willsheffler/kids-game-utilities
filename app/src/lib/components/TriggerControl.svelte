@@ -1,10 +1,10 @@
 <script>
-  export let mode = 'always'; // 'always' | 'mention' | 'off'
+  export let mode = 'auto'; // 'auto' | 'mention' | 'manual' (canonical backend values)
 
   const modes = [
-    { value: 'always', label: 'Auto' },
+    { value: 'auto', label: 'Auto' },
     { value: 'mention', label: '@mention' },
-    { value: 'off', label: 'Off' },
+    { value: 'manual', label: 'Manual' },
   ];
 </script>
 

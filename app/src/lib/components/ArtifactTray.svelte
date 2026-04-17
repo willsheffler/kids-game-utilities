@@ -1,9 +1,7 @@
 <script>
   export let backendUrl = '';
   export let project = '';
-
-  let artifacts = [];
-  // Will load from backend manifest later
+  export let artifacts = [];
 </script>
 
 <div class="artifact-tray">

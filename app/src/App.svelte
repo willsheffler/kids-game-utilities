@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import DevPanel from './lib/components/DevPanel.svelte';
   import ChatPanel from './lib/components/ChatPanel.svelte';
   import ArtifactTray from './lib/components/ArtifactTray.svelte';
@@ -6,16 +7,46 @@
   import ProjectSelector from './lib/components/ProjectSelector.svelte';
   import ReportViewer from './lib/components/ReportViewer.svelte';
   import StatusDot from './lib/components/StatusDot.svelte';
+  import ScreenshotCapture from './lib/components/ScreenshotCapture.svelte';
+  import ScreenshotSuggestion from './lib/components/ScreenshotSuggestion.svelte';
 
   const BACKEND = import.meta.env.VITE_BACKEND_URL || window.location.origin;
 
   let devPanelOpen = true;
   let activeProject = '';
-  let triggerMode = 'always';
+  let triggerMode = 'auto';
   let agentStatus = 'idle';
+  let screenshotSuggestion = '';
+  let showSuggestion = false;
+  let artifacts = [];
 
-  const session = import.meta.env.VITE_DEFAULT_SESSION || '';
-  const user = 'Will';
+  let session = import.meta.env.VITE_DEFAULT_SESSION || '';
+  let user = 'Will';
+
+  // Bootstrap from backend prefs
+  async function bootstrap() {
+    try {
+      const resp = await fetch(`${BACKEND}/bootstrap`);
+      if (resp.ok) {
+        const data = await resp.json();
+        const prefs = data.result?.prefs || data.prefs || {};
+        if (prefs.activeProject) activeProject = prefs.activeProject;
+        if (prefs.triggerMode) triggerMode = prefs.triggerMode;
+      }
+    } catch (e) { /* backend may not be ready yet */ }
+  }
+
+  function handleScreenshotCaptured(e) {
+    // Add to local artifacts list
+    artifacts = [...artifacts, { label: e.detail.label, path: e.detail.path, filename: e.detail.path?.split('/').pop() || '' }];
+  }
+
+  function handleSuggestionAccept(e) {
+    screenshotSuggestion = e.detail.label;
+    // The ScreenshotCapture component will pick up suggestedLabel
+  }
+
+  onMount(bootstrap);
 </script>
 
 <div class="app" class:panel-open={devPanelOpen}>
@@ -39,7 +70,13 @@
   {#if devPanelOpen}
     <DevPanel>
       <div class="dev-panel-content">
-        <ArtifactTray backendUrl={BACKEND} project={activeProject} />
+        <ScreenshotSuggestion
+          label={screenshotSuggestion}
+          visible={showSuggestion}
+          on:accept={handleSuggestionAccept}
+          on:dismiss={() => showSuggestion = false}
+        />
+        <ArtifactTray backendUrl={BACKEND} project={activeProject} {artifacts} />
 
         <div class="chat-section">
           <ChatPanel
@@ -49,6 +86,11 @@
             agentLabel="agent"
           />
           <div class="composer-controls">
+            <ScreenshotCapture
+              backendUrl={BACKEND}
+              suggestedLabel={screenshotSuggestion}
+              on:captured={handleScreenshotCaptured}
+            />
             <TriggerControl bind:mode={triggerMode} />
           </div>
         </div>
