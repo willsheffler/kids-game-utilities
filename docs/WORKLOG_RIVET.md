@@ -20,6 +20,7 @@
   - `bash smoke.sh` -> OK (backend smoke + frontend build)
   - post-Loom wiring recheck: `bash smoke.sh` -> still OK after status/session integration
   - `uv run --with pytest pytest tests/frontend/test_fix_batch.py -v` -> 15 passed
+  - `uv run --with pytest --with hypothesis pytest tests/test_store_properties.py -q` -> 16 passed
   - runtime-readiness live check on `127.0.0.1:8790` after replacing the stale process:
     - `curl http://127.0.0.1:8790/health` -> `{"status":"ok","default_session":"madeira","user":"sheffler","host":"cake"}`
     - `curl http://127.0.0.1:8790/sessions` -> current session list including `pensieve-loom`, `pensieve-rivet`, `media-madeira`
@@ -61,6 +62,12 @@
   - identified the stale process as `python3 -m backend.server --port 8790 --root .` from the kids-game-utilities submodule
   - replaced it with a detached current-code process on `8790`; current listener PID at validation time: `3103585`
   - no backend code change was required for runtime-readiness; this was a live-process refresh plus route validation pass
+- Added Hypothesis-backed property tests for store invariants in `tests/test_store_properties.py`
+  - prefs round-trip / invalid-mode rejection / per-user isolation
+  - artifact create/get/filter/delete invariants
+  - report round-trip / project filtering / markdown-derived linkage
+  - upload path/content invariants
+- Added `tests/conftest.py` so pytest-based suites can import `backend` without ad hoc `PYTHONPATH` setup
 - Backend/backend-pointer commits were pushed:
   - kids-game-utilities: `8c157e4` (`Add kids-game backend API and smoke coverage`)
   - kids-game-utilities: `b79e452` (`Tolerate unscoped reports and derive artifact links`)
