@@ -1,0 +1,15 @@
+[project]
+name = "kids-game-utilities"
+version = "0.1.0"
+description = "Dogfood utilities and runtime for the kids game-dev shell."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8",
+  "hypothesis>=6",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

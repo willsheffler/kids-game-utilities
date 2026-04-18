@@ -290,6 +290,9 @@ The minimum useful stack is:
 6. in-situ full-app tests
 7. manual dogfood checklist
 
+Property-based testing should live mainly inside layers 1 and 2.
+When the invariants are clear and the state/input space is wider than a few hand-picked fixtures can cover well, bias lightly toward property-based tests rather than only adding more example cases.
+
 ### 1. Isolated unit tests
 
 Required early backend-focused tests:
@@ -318,6 +321,15 @@ Required early frontend/unit-level tests:
   - settings state
 - small component-level logic that does not need a browser harness to validate
 
+Property-based tests are a good fit here when:
+
+- the input space is broad and combinatorial
+- ordering or repetition matters
+- the logic is fundamentally about invariants, normalization, or idempotency
+- malformed inputs are common enough that a few fixed examples are not convincing
+
+Do not force property-based testing onto simple one-example business logic just for style points.
+
 ### 2. Contract and integration tests
 
 These protect Loom/Rivet parallel work from drifting request/response shapes and broken joins.
@@ -343,6 +355,9 @@ These tests should fail loudly if:
 - a field is renamed
 - a field disappears
 - frontend and backend assume different payload shapes
+
+When a strong invariant can be stated clearly, prefer a small number of property-based contract tests over a large pile of repetitive near-duplicate fixtures.
+Good examples are repeated create/update sequences, linkage invariants, and normalization behavior under many valid input variants.
 
 ### 3. Automated headless browser harness component tests
 
@@ -473,6 +488,46 @@ Do not rely on only one layer.
 If we only test in isolation, persistence drift slips through.
 If we only test in the full app, iteration slows down and frontend regressions become harder to localize.
 If we only do manual browser probing, known bugs will keep recurring because they were never turned into automated browser-harness checks.
+
+## Property-based testing bias
+
+Default stance:
+
+- bias lightly toward property-based testing where it is clear how to do it and the payoff is real
+- use it mostly for parsers, normalization, invariants, and small state machines
+- keep ordinary example-based tests for straightforward workflows, UI behavior, named regressions, and visual/browser flows
+
+Good fits:
+
+- message / reply parsing
+- lifecycle and babysitter state transitions
+- manifest/report linkage invariants
+- dedup / normalization logic
+- repeated update sequences where the same invariant should always hold
+
+Poor fits:
+
+- visual layout assertions
+- one-off browser flows
+- cases where the property is vague, aesthetic, or hard to state precisely
+
+Practical rule:
+
+- if you can state a strong invariant in one sentence, consider a property-based test
+- if you cannot say what must always be true, prefer ordinary example-based tests instead
+
+Recommended first Hypothesis targets in this workspace:
+
+1. direct-reply extraction and malformed marker recovery in the harness
+   - invariant: well-formed bounded reply blocks always parse correctly
+   - invariant: malformed variants either recover conservatively or fail explicitly, never silently invent content
+2. babysitter / turn-lifecycle reprompt suppression state
+   - invariant: busy targets are never poked
+   - invariant: no-progress counters only grow when there is no fresh activity
+   - invariant: fresh activity clears stall state
+3. artifact/report linkage idempotency
+   - invariant: repeated report saves never duplicate artifact linkage
+   - invariant: update/re-save sequences preserve linkage consistency
 
 ## Non-deferrable required tests before dogfood
 

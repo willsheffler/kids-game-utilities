@@ -125,6 +125,71 @@ Useful signals:
 - did seam issues get resolved agent-to-agent rather than waiting?
 - was the overnight progress mostly implementation and testing rather than speculation?
 
+## Observations from first overnight run
+
+What worked:
+
+- direct lane ownership worked well
+  - Loom as frontend
+  - Rivet as backend/contracts
+- lightweight per-agent work logs were useful
+  - they made morning review much faster
+  - they gave the babysitter prompts a concrete local surface to reference
+- direct agent-to-agent seam messaging helped
+  - Rivet informed Loom when backend work was ready
+  - this was more useful than waiting for Will mediation on every seam
+- direct targeted reprompts were useful when an agent had gone quiet after a checkpoint
+  - one concrete follow-up prompt to Rivet helped clarify “checkpoint is not a stop condition”
+- babysitter did produce real momentum
+  - Loom and Rivet both received harness-delivered babysitter prompts
+  - both made substantial overnight progress without needing repeated human nudges
+
+What did not work cleanly:
+
+- “meaningful checkpoint” was initially too permissive
+  - Rivet treated a backend checkpoint as a plausible stopping place
+  - the babysitter/prompt language needed tightening so checkpoints mean:
+    - update the work log
+    - then immediately choose the next task
+- babysitter is still too coarse
+  - it uses interval + quiet suppression
+  - it does not know whether a target is truly stalled
+  - it does not know whether a target is already mid-turn/busy
+- babysitter is currently single-run in practice
+  - one active run owned by one operator blocks another independent babysitter use
+  - this came up when Madeira could not start her own babysitter run without overriding Lattice’s run
+
+Practical prompt lesson:
+
+- “continue autonomously until blocked or done” is not enough by itself
+- the prompt should explicitly say:
+  - meaningful checkpoints are not stop conditions
+  - use checkpoints to update the log and continue
+  - only stop for real blockers, unresolvable failing tests, or true lane completion
+
+Practical supervision lesson:
+
+- prefer this order:
+  1. give a strong scoped autonomy prompt
+  2. keep work logs
+  3. use paired-agent seam messaging
+  4. let babysitter provide periodic continuation pressure
+  5. use a direct targeted reprompt when a specific agent has clearly stalled
+
+## Tuning notes
+
+Two useful babysitter modes now seem worth keeping in mind:
+
+- conservative overnight mode
+  - interval: 20 minutes
+  - min quiet: 20 minutes
+  - good default when avoiding prompt spam matters more than aggressive throughput
+- aggressive active-batch mode
+  - interval: 10 minutes
+  - min quiet: 10 minutes
+  - duration: 4 hours
+  - useful when Will wants sustained focused progress on a narrow batch and is comfortable with more frequent nudges
+
 ## Next refinement ideas
 
 If this pattern works, likely improvements are:
@@ -132,6 +197,7 @@ If this pattern works, likely improvements are:
 - better idle-aware babysitter behavior
 - suppress babysitter pokes when hook-derived agent status is `busy`
 - add tests for “do not poke mid-turn/busy target”
+- support multiple independent named babysitter runs instead of one active global run slot
 - explicit babysitter history/status inspection helpers
 - stronger automatic logging of reprompt -> subsequent activity correlation
 - reusable prompt templates for frontend/backend paired work
