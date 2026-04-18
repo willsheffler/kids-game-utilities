@@ -10,6 +10,25 @@
 
 ## Log
 
+### 2026-04-17 07:55 — Dogfood readiness note
+
+**Status: ready for dogfood.**
+
+Committed and pushed: `52b8eb9` (submodule) + `a9eafc0` (parent pointer).
+
+Integration checks (20/21 passing against live backend on 8790):
+- Bootstrap: PASS (prefs, projects, trigger mode)
+- Screenshot upload → artifact tray: PASS (upload, serve, project-scoped list)
+- Report with embedded image: PASS (create, fetch, markdown preserved, artifact linked)
+- Trigger mode persistence: PASS (auto/mention/manual round-trip)
+- Project switch scoping: PASS (artifacts + reports filter correctly)
+- Health/sessions: SKIP — running server is stale (needs restart to pick up runtime_bridge routes); not a frontend issue
+
+Known items for dogfood:
+- Backend process on 8790 needs restart to serve /health and /sessions routes (code is correct, process is stale)
+- ReportViewer renders markdown via `marked` — XSS risk is minimal since reports come from trusted agent, but consider DOMPurify if user-generated content enters reports later
+- Trigger mode enforcement is frontend-only gating — backend still accepts all POSTs to /chat regardless; this is correct per contract (backend is mode-unaware)
+
 ### 2026-04-17 07:30 — Fix batch complete (Lattice review)
 All 5 fixes from the Lattice-assigned batch are done:
 

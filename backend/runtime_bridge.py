@@ -10,7 +10,7 @@ from harness.core import DEFAULT_SOCKET_PATH as HARNESS_DEFAULT_SOCKET_PATH
 
 WORKSPACE_ROOT = pathlib.Path(__file__).resolve().parents[3]
 REGISTRY_PATH = WORKSPACE_ROOT / "harness" / "agent_registry.json"
-DEFAULT_BACKEND_TARGET = os.environ.get("KIDS_GAME_UTILITIES_DEFAULT_BACKEND", "madeira")
+DEFAULT_BACKEND_TARGET = os.environ.get("KIDS_GAME_UTILITIES_DEFAULT_BACKEND", "media-madeira")
 
 
 def _send_harness_command(payload: dict[str, Any], *, timeout_s: float = 3.0) -> dict[str, Any]:

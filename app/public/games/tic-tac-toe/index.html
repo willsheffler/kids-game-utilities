@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111; color: #e8e8e8; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+    h1 { font-size: 1.4em; margin-bottom: 16px; color: #888; }
+    .board { display: grid; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(3, 100px); gap: 4px; }
+    .cell { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; font-size: 2.4em; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
+    .cell:hover { background: #222; }
+    .cell.x { color: #4a9eff; }
+    .cell.o { color: #ff6b6b; }
+    .status { margin-top: 16px; font-size: 1em; color: #888; min-height: 1.5em; }
+    .reset { margin-top: 12px; background: none; border: 1px solid #2a2a2a; color: #888; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 0.85em; }
+    .reset:hover { border-color: #4a9eff; color: #e8e8e8; }
+    canvas { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe</h1>
+  <div class="board" id="board"></div>
+  <div class="status" id="status">X's turn</div>
+  <button class="reset" onclick="resetGame()">New Game</button>
+  <canvas id="game" width="320" height="320"></canvas>
+
+  <script>
+    const board = document.getElementById('board');
+    const status = document.getElementById('status');
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    let cells = Array(9).fill('');
+    let turn = 'X';
+    let gameOver = false;
+
+    const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+    function render() {
+      board.innerHTML = '';
+      cells.forEach((v, i) => {
+        const el = document.createElement('div');
+        el.className = 'cell' + (v === 'X' ? ' x' : v === 'O' ? ' o' : '');
+        el.textContent = v;
+        el.onclick = () => play(i);
+        board.appendChild(el);
+      });
+      renderCanvas();
+    }
+
+    function renderCanvas() {
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, 320, 320);
+      ctx.strokeStyle = '#2a2a2a';
+      ctx.lineWidth = 2;
+      for (let i = 1; i < 3; i++) {
+        ctx.beginPath(); ctx.moveTo(i * 106, 10); ctx.lineTo(i * 106, 310); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10, i * 106); ctx.lineTo(310, i * 106); ctx.stroke();
+      }
+      cells.forEach((v, i) => {
+        if (!v) return;
+        const x = (i % 3) * 106 + 53;
+        const y = Math.floor(i / 3) * 106 + 53;
+        ctx.font = 'bold 48px system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = v === 'X' ? '#4a9eff' : '#ff6b6b';
+        ctx.fillText(v, x, y);
+      });
+    }
+
+    function play(i) {
+      if (cells[i] || gameOver) return;
+      cells[i] = turn;
+      const winner = checkWin();
+      if (winner) {
+        status.textContent = winner + ' wins!';
+        gameOver = true;
+      } else if (cells.every(c => c)) {
+        status.textContent = 'Draw!';
+        gameOver = true;
+      } else {
+        turn = turn === 'X' ? 'O' : 'X';
+        status.textContent = turn + "'s turn";
+      }
+      render();
+    }
+
+    function checkWin() {
+      for (const [a, b, c] of wins) {
+        if (cells[a] && cells[a] === cells[b] && cells[b] === cells[c]) return cells[a];
+      }
+      return null;
+    }
+
+    function resetGame() {
+      cells = Array(9).fill('');
+      turn = 'X';
+      gameOver = false;
+      status.textContent = "X's turn";
+      render();
+    }
+
+    render();
+  </script>
+</body>
+</html>

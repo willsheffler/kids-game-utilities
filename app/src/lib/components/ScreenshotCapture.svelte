@@ -19,29 +19,72 @@
   function getCanvas() {
     if (targetCanvas instanceof HTMLElement) return targetCanvas;
     if (typeof targetCanvas === 'string') return document.querySelector(targetCanvas);
-    // Fallback: find first canvas on page
-    return document.querySelector('canvas');
+    // Check main document first
+    let c = document.querySelector('canvas');
+    if (c) return c;
+    // Check inside same-origin iframes
+    try {
+      const iframe = document.querySelector('iframe.game-frame');
+      if (iframe?.contentDocument) {
+        c = iframe.contentDocument.querySelector('canvas');
+        if (c) return c;
+      }
+    } catch (e) { /* cross-origin, skip */ }
+    return null;
   }
 
   function capture() {
     const canvas = getCanvas();
-    if (!canvas) {
-      // No canvas — capture the whole content area instead
-      captureElement(document.querySelector('.content-area') || document.body);
+    if (canvas) {
+      previewUrl = canvas.toDataURL('image/png');
+      canvas.toBlob(blob => { previewBlob = blob; }, 'image/png');
+      capturing = true;
       return;
     }
-    previewUrl = canvas.toDataURL('image/png');
-    canvas.toBlob(blob => { previewBlob = blob; }, 'image/png');
-    capturing = true;
-  }
-
-  function captureElement(el) {
-    // For non-canvas elements, use html2canvas-like approach
-    // For v1, just screenshot the viewport via a placeholder
-    // TODO: integrate proper element capture
+    // No canvas — try to capture iframe body via offscreen canvas
+    try {
+      const iframe = document.querySelector('iframe.game-frame');
+      const iframeDoc = iframe?.contentDocument;
+      if (iframeDoc) {
+        captureIframeBody(iframe);
+        return;
+      }
+    } catch (e) { /* cross-origin */ }
     previewUrl = '';
     previewBlob = null;
     capturing = true;
+  }
+
+  function captureIframeBody(iframe) {
+    const rect = iframe.getBoundingClientRect();
+    const offscreen = document.createElement('canvas');
+    offscreen.width = rect.width;
+    offscreen.height = rect.height;
+    const octx = offscreen.getContext('2d');
+    // Draw iframe content via foreignObject SVG
+    const data = new XMLSerializer().serializeToString(iframe.contentDocument.documentElement);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
+      <foreignObject width="100%" height="100%">
+        <div xmlns="http://www.w3.org/1999/xhtml">${data}</div>
+      </foreignObject>
+    </svg>`;
+    const img = new Image();
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      octx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      previewUrl = offscreen.toDataURL('image/png');
+      offscreen.toBlob(b => { previewBlob = b; }, 'image/png');
+      capturing = true;
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      previewUrl = '';
+      previewBlob = null;
+      capturing = true;
+    };
+    img.src = url;
   }
 
   function dismiss() {
@@ -112,6 +155,7 @@
           bind:value={label}
           placeholder="Describe what this shows... (required)"
           autofocus
+          on:keydown={(e) => { if (e.key === 'Enter' && canSend) send(); }}
         />
         <span class="char-count" class:ok={label.trim().length >= 3}>
           {label.trim().length}/3+
@@ -135,15 +179,14 @@
 
   .capture-btn {
     background: none;
-    border: 1px solid var(--border, #2a2a2a);
+    border: none;
     color: var(--text-dim, #888);
-    padding: 6px 12px;
-    border-radius: 4px;
+    padding: 4px 6px;
     cursor: pointer;
-    font-size: 1em;
-    margin: 4px 8px;
+    font-size: 1.1em;
+    flex-shrink: 0;
   }
-  .capture-btn:hover { border-color: var(--accent, #4a9eff); }
+  .capture-btn:hover { color: var(--accent, #4a9eff); }
 
   .capture-modal {
     padding: 8px;

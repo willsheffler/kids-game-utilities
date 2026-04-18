@@ -20,7 +20,7 @@ CHATLOG_ROOT = pathlib.Path(
 FRONTEND_PUSH_ROOT = pathlib.Path(
     os.environ.get("PENSIEVE_FRONTEND_PUSH_ROOT", os.path.expanduser("~/.local/share/pensieve-harness/frontend_push"))
 )
-DEFAULT_BACKEND_TARGET = os.environ.get("KIDS_GAME_UTILITIES_DEFAULT_BACKEND", "madeira")
+DEFAULT_BACKEND_TARGET = os.environ.get("KIDS_GAME_UTILITIES_DEFAULT_BACKEND", "media-madeira")
 DEFAULT_SESSION_ID_PREFIX = "kgu"
 
 

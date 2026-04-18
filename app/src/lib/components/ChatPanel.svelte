@@ -6,6 +6,11 @@
   export let user = '';
   export let agentLabel = 'agent';
   export let triggerMode = 'auto'; // 'auto' | 'mention' | 'manual'
+  export let hideTags = true; // hide [voice:...], [[...]], ((...)) from display
+
+  // Derive display name from session (e.g. "pensieve-loom" -> "loom", "media-madeira" -> "madeira")
+  $: resolvedAgentLabel = agentLabel !== 'agent' ? agentLabel
+    : session.replace(/^(pensieve|media|cheryl|jonah|judah)-/, '') || 'agent';
 
   const dispatch = createEventDispatcher();
 
@@ -50,7 +55,16 @@
         if (!displayText) displayText = '(Report saved)';
       }
     }
-    messages = [...messages, { role, text: displayText, label: label || (role === 'agent' ? agentLabel : ''), raw: text }];
+    // Strip display noise: [voice:...], [[...]], ((...))
+    if (hideTags) {
+      displayText = displayText
+        .replace(/\[voice[=:][^\]]*\]/gi, '')
+        .replace(/\[\[[^\]]*\]\]/g, '')
+        .replace(/\(\([^)]*\)\)/g, '')
+        .replace(/  +/g, ' ')
+        .trim();
+    }
+    messages = [...messages, { role, text: displayText, label: label || (role === 'agent' ? resolvedAgentLabel : ''), raw: text }];
     scrollToBottom();
   }
 
@@ -63,7 +77,7 @@
   async function loadHistory() {
     if (!session) return;
     try {
-      const resp = await fetch(`${backendUrl}/history/${encodeURIComponent(session)}`);
+      const resp = await fetch(`${backendUrl}/history/${encodeURIComponent(session)}?limit=20`);
       const data = await resp.json();
       messages = [];
       seenKeys.clear();
@@ -96,7 +110,7 @@
       });
       const data = await resp.json();
       if (data.detail) throw new Error(data.detail);
-      addMessage('agent', data.reply || '(no reply)', agentLabel);
+      addMessage('agent', data.reply || '(no reply)', resolvedAgentLabel);
     } catch (e) {
       addMessage('system', 'Error: ' + e.message, '');
     }
@@ -109,7 +123,7 @@
       const resp = await fetch(`${backendUrl}/poll/${encodeURIComponent(session)}`);
       const data = await resp.json();
       for (const msg of (data.messages || [])) {
-        addMessage(msg.role || 'agent', msg.text, msg.sender || agentLabel);
+        addMessage(msg.role || 'agent', msg.text, msg.sender || resolvedAgentLabel);
       }
     } catch (e) { /* ignore */ }
   }
@@ -121,8 +135,14 @@
     }
   }
 
-  onMount(() => {
+  // Reload history when session changes (including initial async discovery)
+  let lastSession = '';
+  $: if (session && session !== lastSession) {
+    lastSession = session;
     loadHistory();
+  }
+
+  onMount(() => {
     pollTimer = setInterval(poll, 3000);
   });
 
@@ -151,6 +171,7 @@
       rows="1"
       disabled={processing}
     ></textarea>
+    <slot name="input-actions" />
     <button on:click={send} disabled={processing || !inputText.trim()}>↑</button>
   </div>
 </div>
