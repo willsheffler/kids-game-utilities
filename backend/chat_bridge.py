@@ -12,8 +12,8 @@ WORKSPACE_ROOT = pathlib.Path(__file__).resolve().parents[3]
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
-from harness.core import DEFAULT_SOCKET_PATH as HARNESS_DEFAULT_SOCKET_PATH
-from harness.core import send_command as harness_send_command
+from pensieve_backend.core import DEFAULT_SOCKET_PATH as HARNESS_DEFAULT_SOCKET_PATH
+from pensieve_backend.core import send_command as harness_send_command
 CHATLOG_ROOT = pathlib.Path(
     os.environ.get("PENSIEVE_CHATLOG_ROOT", str(WORKSPACE_ROOT / "data" / "will" / "sources" / "chatlogs"))
 )

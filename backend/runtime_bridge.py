@@ -6,10 +6,10 @@ import pathlib
 import socket
 from typing import Any
 
-from harness.core import DEFAULT_SOCKET_PATH as HARNESS_DEFAULT_SOCKET_PATH
+from pensieve_backend.core import DEFAULT_SOCKET_PATH as HARNESS_DEFAULT_SOCKET_PATH
 
 WORKSPACE_ROOT = pathlib.Path(__file__).resolve().parents[3]
-REGISTRY_PATH = WORKSPACE_ROOT / "harness" / "agent_registry.json"
+REGISTRY_PATH = WORKSPACE_ROOT / "pensieve_backend" / "agent_registry.json"
 DEFAULT_BACKEND_TARGET = os.environ.get("KIDS_GAME_UTILITIES_DEFAULT_BACKEND", "media-madeira")
 
 
